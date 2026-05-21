@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Go Riteway — Agentforce Morning Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:#F3F3F3;color:#080707;font-size:13px;line-height:1.5}
+
+/* === GLOBAL HEADER === */
+.global-header{background:#fff;border-bottom:1px solid #DDDBDA;height:48px;display:flex;align-items:center;padding:0 16px;position:sticky;top:0;z-index:100}
+.global-header__logo{margin-right:12px}
+.global-header__logo img,.global-header__logo svg{height:28px;width:auto}
+.global-header__search{flex:1;display:flex;justify-content:center}
+.global-header__search input{width:400px;height:32px;border:1px solid #DDDBDA;border-radius:8px;padding:0 12px 0 32px;font-size:13px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='%23706E6B' viewBox='0 0 24 24'%3E%3Cpath d='M15.5 14h-.79l-.28-.27A6.47 6.47 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/%3E%3C/svg%3E") 10px center no-repeat}
+.global-header__actions{display:flex;align-items:center;gap:12px}
+.global-header__actions svg{width:20px;height:20px;fill:#706E6B;cursor:pointer}
+.global-header__avatar{width:28px;height:28px;border-radius:50%;background:#0176D3;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:700}
+
+/* === APP NAV === */
+.app-nav{background:#fff;border-bottom:1px solid #DDDBDA;padding:0 24px;display:flex;align-items:center;height:40px;gap:4px}
+.app-nav__app-name{font-size:14px;font-weight:700;color:#080707;margin-right:20px}
+.app-nav__waffle{margin-right:8px;cursor:pointer;font-size:18px;color:#706E6B}
+.app-nav a{color:#080707;text-decoration:none;font-size:13px;padding:10px 12px;border-bottom:3px solid transparent;transition:all .15s;font-weight:400}
+.app-nav a:hover{background:#F3F3F3;border-radius:4px 4px 0 0}
+.app-nav a.active{color:#0176D3;border-bottom-color:#0176D3;font-weight:500}
+
+/* === PAGE LAYOUT === */
+.page-container{max-width:1440px;margin:0 auto;padding:0}
+.record-header{background:#fff;border-bottom:1px solid #DDDBDA;padding:16px 24px}
+.record-header__top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.record-header__icon{width:40px;height:40px;background:#7F8DE1;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-right:12px}
+.record-header__icon svg{fill:#fff;width:22px;height:22px}
+.record-header__title-group{display:flex;align-items:center;flex:1}
+.record-header__type{font-size:11px;color:#706E6B;text-transform:uppercase;letter-spacing:.3px}
+.record-header__name{font-size:20px;font-weight:700;color:#080707}
+.record-header__actions{display:flex;gap:8px}
+.record-header__actions button{height:32px;padding:0 16px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid #DDDBDA;background:#fff;color:#080707}
+.record-header__actions button.brand{background:#0176D3;color:#fff;border-color:#0176D3}
+/* Highlights Panel */
+.highlights-panel{display:flex;gap:0;margin-top:12px;border-top:1px solid #DDDBDA;padding-top:12px}
+.highlights-panel__item{flex:1;padding:0 16px;border-right:1px solid #DDDBDA}
+.highlights-panel__item:first-child{padding-left:0}
+.highlights-panel__item:last-child{border-right:none}
+.highlights-panel__label{font-size:11px;color:#706E6B;margin-bottom:2px}
+.highlights-panel__value{font-size:13px;font-weight:500;color:#080707}
+
+/* === TABS === */
+.tab-bar{background:#fff;padding:0 24px;border-bottom:1px solid #DDDBDA;display:flex;gap:0}
+.tab-bar a{font-size:13px;color:#080707;text-decoration:none;padding:12px 16px;border-bottom:3px solid transparent;font-weight:400}
+.tab-bar a.active{color:#0176D3;border-bottom-color:#0176D3;font-weight:500}
+
+/* === CONTENT AREA === */
+.content-layout{display:grid;grid-template-columns:1fr 360px;gap:0;min-height:calc(100vh - 200px)}
+.content-main{padding:16px 24px;background:#F3F3F3}
+.content-sidebar{padding:16px;background:#fff;border-left:1px solid #DDDBDA}
+
+/* === CARDS === */
+.sf-card{background:#fff;border:1px solid #DDDBDA;border-radius:12px;margin-bottom:12px;overflow:hidden}
+.sf-card__header{padding:12px 16px;border-bottom:1px solid #DDDBDA;display:flex;align-items:center;justify-content:space-between}
+.sf-card__title{font-size:13px;font-weight:700;color:#080707}
+.sf-card__badge{font-size:10px;background:#EEF4FF;color:#0176D3;padding:3px 10px;border-radius:12px;font-weight:600}
+.sf-card__body{padding:16px}
+
+/* === RECORD DETAIL FIELDS === */
+.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.field-row{display:flex;align-items:flex-start;justify-content:space-between;padding:8px 0;border-bottom:1px solid #F3F3F3}
+.field-row__label{font-size:11px;color:#706E6B;min-width:120px}
+.field-row__value{font-size:13px;color:#080707;flex:1}
+.field-row__edit{color:#706E6B;cursor:pointer;margin-left:8px}
+.field-col{padding:0 16px}
+.field-col:first-child{padding-left:0;border-right:1px solid #F3F3F3}
+.field-item{padding:10px 0;border-bottom:1px solid #F3F3F3}
+.field-item:last-child{border-bottom:none}
+.field-item__label{font-size:11px;color:#706E6B;margin-bottom:2px}
+.field-item__value{font-size:13px;color:#080707}
+.field-item__value a{color:#0176D3;text-decoration:none}
+
+/* === EINSTEIN PANEL === */
+.einstein-panel{background:#F2E8FC;border:1px solid #D7BFF2;border-radius:10px;padding:12px 16px;margin-top:12px}
+.einstein-panel__title{font-size:12px;font-weight:700;color:#6B21A8;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.einstein-insight{display:flex;gap:8px;margin-bottom:8px;font-size:12px;line-height:1.6;color:#3E3E3C}
+.einstein-insight:last-child{margin-bottom:0}
+.einstein-dot{width:6px;height:6px;background:#9333EA;border-radius:50%;margin-top:7px;flex-shrink:0}
+
+/* === ACTIVITY TIMELINE === */
+.timeline-item{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid #F3F3F3}
+.timeline-item:last-child{border-bottom:none}
+.timeline-icon{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px}
+.timeline-icon--completed{background:#4BCA81;color:#fff}
+.timeline-icon--escalated{background:#FE5C4C;color:#fff}
+.timeline-icon--pending{background:#FFB75D;color:#fff}
+.timeline-content{flex:1;font-size:12px;line-height:1.6}
+.timeline-content strong{font-weight:600}
+.timeline-meta{font-size:10px;color:#706E6B;margin-top:2px}
+.timeline-badge{font-size:9px;padding:3px 10px;border-radius:12px;font-weight:600;white-space:nowrap}
+.badge--completed{background:#DEF7E8;color:#15803D}
+.badge--escalated{background:#FEE2E2;color:#DC2626}
+.badge--pending{background:#FEF3CD;color:#92400E}
+
+/* === CHAT === */
+.chat-container{background:#FAFAF9;border:1px solid #DDDBDA;border-radius:12px;padding:12px}
+.chat-msg{display:flex;gap:8px;margin-bottom:12px}
+.chat-msg:last-child{margin-bottom:0}
+.chat-avatar{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0}
+.chat-avatar--prospect{background:#032D60;color:#fff}
+.chat-avatar--agent{background:#9333EA;color:#fff}
+.chat-bubble{padding:10px 14px;border-radius:14px;font-size:12px;line-height:1.6;max-width:85%}
+.chat-msg--prospect .chat-bubble{background:#EEF4FF;border:1px solid #D8EDFF}
+.chat-msg--agent .chat-bubble{background:#fff;border:1px solid #DDDBDA}
+.chat-handoff{background:#FFFAEB;border:1px solid #F4C744;border-radius:10px;padding:10px 12px;margin-top:12px;font-size:11px;line-height:1.7}
+
+/* === NBA === */
+.nba-item{padding:12px 0;border-bottom:1px solid #F3F3F3}
+.nba-item:last-child{border-bottom:none}
+.nba-item__title{font-size:13px;font-weight:600;color:#080707;margin-bottom:4px}
+.nba-item__reason{font-size:11px;color:#706E6B;line-height:1.6;margin-bottom:8px}
+.nba-btn{display:inline-block;background:#0176D3;color:#fff;font-size:11px;font-weight:600;padding:6px 14px;border-radius:8px;border:none;cursor:pointer}
+
+/* === SIDEBAR TABS === */
+.sidebar-tabs{display:flex;border-bottom:1px solid #DDDBDA;margin-bottom:12px}
+.sidebar-tabs a{font-size:12px;color:#080707;text-decoration:none;padding:8px 12px;border-bottom:3px solid transparent}
+.sidebar-tabs a.active{color:#0176D3;border-bottom-color:#0176D3;font-weight:500}
+</style>
+</head>
+<body>
+<!-- GLOBAL HEADER -->
+<header class="global-header">
+<div class="global-header__logo">
+<svg viewBox="0 0 100 70" width="40" height="28"><path fill="#00A1E0" d="M45.8 8.5c3.4-3.5 8.1-5.7 13.3-5.7 7 0 13.1 3.9 16.2 9.7 2.7-1.2 5.7-1.9 8.8-1.9 12 0 21.8 9.8 21.8 21.8s-9.8 21.8-21.8 21.8c-1.6 0-3.2-.2-4.7-.5-2.8 4.9-8.1 8.2-14.1 8.2-2.4 0-4.7-.5-6.8-1.5-2.9 6-9 10.1-16 10.1-7.4 0-13.8-4.5-16.5-10.9-1.3.3-2.6.4-4 .4-9.8 0-17.8-8-17.8-17.8 0-6.5 3.5-12.2 8.7-15.3-.7-2-1.1-4.2-1.1-6.5C11.8 8.5 21.4-.1 33.2-.1c5.6 0 10.7 2.1 14.6 5.6l-2 3z"/></svg>
+</div>
+<div class="global-header__search">
+<input type="text" placeholder="Search...">
+</div>
+<div class="global-header__actions">
+<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+<svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+<svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58-1.97-3.4-2.39.96c-.5-.38-1.03-.7-1.62-.94L14.82 4h-3.94l-.36 2.1c-.59.24-1.12.56-1.62.94l-2.39-.96-1.97 3.4 2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58 1.97 3.4 2.39-.96c.5.38 1.03.7 1.62.94l.36 2.1h3.94l.36-2.1c.59-.24 1.12-.56 1.62-.94l2.39.96 1.97-3.4-2.03-1.58z"/></svg>
+<div class="global-header__avatar">JM</div>
+</div>
+</header>
+
+<!-- APP NAV -->
+<nav class="app-nav">
+<span class="app-nav__waffle">⠿</span>
+<span class="app-nav__app-name">Sales</span>
+<a href="#">Home</a>
+<a href="#">Tableau Insights</a>
+<a class="active" href="#">Accounts</a>
+<a href="#">Contacts</a>
+<a href="#">Leads</a>
+<a href="#">Opportunities</a>
+<a href="#">Dashboards</a>
+<a href="#">Reports</a>
+</nav>
+
+<!-- RECORD HEADER -->
+<div class="record-header">
+<div class="record-header__top">
+<div class="record-header__title-group">
+<div class="record-header__icon">
+<svg viewBox="0 0 24 24"><path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/></svg>
+</div>
+<div>
+<div class="record-header__type">Account</div>
+<div class="record-header__name">Go Riteway Transportation Group</div>
+</div>
+</div>
+<div class="record-header__actions">
+<button>+ Follow</button>
+<button>Edit</button>
+<button class="brand">Agentforce</button>
+</div>
+</div>
+<div class="highlights-panel">
+<div class="highlights-panel__item">
+<div class="highlights-panel__label">Account Number</div>
+<div class="highlights-panel__value">GR-2024-4471</div>
+</div>
+<div class="highlights-panel__item">
+<div class="highlights-panel__label">Type</div>
+<div class="highlights-panel__value">Customer</div>
+</div>
+<div class="highlights-panel__item">
+<div class="highlights-panel__label">Industry</div>
+<div class="highlights-panel__value">Transportation</div>
+</div>
+<div class="highlights-panel__item">
+<div class="highlights-panel__label">Annual Revenue</div>
+<div class="highlights-panel__value">USD 48,200,000</div>
+</div>
+<div class="highlights-panel__item">
+<div class="highlights-panel__label">Employees</div>
+<div class="highlights-panel__value">620</div>
+</div>
+<div class="highlights-panel__item">
+<div class="highlights-panel__label">Days Since Activity</div>
+<div class="highlights-panel__value">-2</div>
+</div>
+</div>
+</div>
+
+<!-- TAB BAR -->
+<div class="tab-bar">
+<a class="active" href="#">Details</a>
+<a href="#">Contacts</a>
+<a href="#">Sales</a>
+<a href="#">Service</a>
+<a href="#">Agentforce</a>
+<a href="#">Fleet</a>
+</div>
+
+<!-- CONTENT LAYOUT -->
+<div class="content-layout">
+<!-- MAIN CONTENT -->
+<div class="content-main">
+
+<!-- Account Details Card -->
+<div class="sf-card">
+<div class="sf-card__header">
+<span class="sf-card__title">Account Details</span>
+</div>
+<div class="sf-card__body">
+<div class="field-grid">
+<div class="field-col">
+<div class="field-item">
+<div class="field-item__label">Account Name</div>
+<div class="field-item__value">Go Riteway Transportation Group</div>
+</div>
+<div class="field-item">
+<div class="field-item__label">Type</div>
+<div class="field-item__value">Customer — Active</div>
+</div>
+<div class="field-item">
+<div class="field-item__label">Industry</div>
+<div class="field-item__value">Charter Bus / Ground Transportation</div>
+</div>
+<div class="field-item">
+<div class="field-item__label">Employees</div>
+<div class="field-item__value">620</div>
+</div>
+<div class="field-item">
+<div class="field-item__label">Annual Revenue</div>
+<div class="field-item__value">USD 48,200,000.00</div>
+</div>
+</div>
+<div class="field-col">
+<div class="field-item">
+<div class="field-item__label">Account Owner</div>
+<div class="field-item__value"><a href="#">Jordan Mack</a></div>
+</div>
+<div class="field-item">
+<div class="field-item__label">Phone</div>
+<div class="field-item__value">✆ (262) 555-0187</div>
+</div>
+<div class="field-item">
+<div class="field-item__label">Website</div>
+<div class="field-item__value"><a href="#">www.goriteway.com</a></div>
+</div>
+<div class="field-item">
+<div class="field-item__label">Primary Contact</div>
+<div class="field-item__value"><a href="#">Mike Rezendes</a>, VP of Operations</div>
+</div>
+<div class="field-item">
+<div class="field-item__label">Open Opportunities</div>
+<div class="field-item__value">3 ($1.2M pipeline)</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Einstein Insights -->
+<div class="sf-card">
+<div class="sf-card__header">
+<span class="sf-card__title">✦ Einstein Insights</span>
+<span class="sf-card__badge">AI-Generated</span>
+</div>
+<div class="sf-card__body">
+<div class="einstein-panel" style="margin-top:0">
+<div class="einstein-insight"><span class="einstein-dot"></span><span><strong>Fleet expansion signal detected</strong> — LinkedIn post from COO mentions 14 new motorcoaches arriving Q3. Potential upsell for fleet management add-on ($180K ARR).</span></div>
+<div class="einstein-insight"><span class="einstein-dot"></span><span><strong>Competitor contract renewal in 58 days</strong> — Prospect "Lakewood School District" has a HubSpot renewal Aug 18. They opened your pricing email 3× this week.</span></div>
+<div class="einstein-insight"><span class="einstein-dot"></span><span><strong>Champion job change</strong> — Former contact Dana Kowalski (who signed the original deal) just joined Milwaukee Public Schools as Transport Director. High-probability warm intro.</span></div>
+</div>
+</div>
+</div>
+
+<!-- Agentforce Overnight Activity -->
+<div class="sf-card">
+<div class="sf-card__header">
+<span class="sf-card__title">Agentforce SDR Agent — Overnight Activity</span>
+<span class="sf-card__badge">5 Actions</span>
+</div>
+<div class="sf-card__body">
+<div class="timeline-item">
+<div class="timeline-icon timeline-icon--completed">✓</div>
+<div class="timeline-content"><strong>Qualified inbound lead</strong> — Cardinal Stritch University athletic dept. submitted form requesting charter quote for 6 away games. Scored 82/100. Routed to Jordan's pipeline.<div class="timeline-meta">11:42 PM · Lead Qualification</div></div>
+<span class="timeline-badge badge--completed">✅ Completed</span>
+</div>
+<div class="timeline-item">
+<div class="timeline-icon timeline-icon--completed">✓</div>
+<div class="timeline-content"><strong>Sent follow-up email</strong> — Personalized 3-touch sequence email #2 to Greendale School District (re: spring field trip fleet). Subject: "Quick question about your May 28th trip, Lisa"<div class="timeline-meta">1:15 AM · Email Sequence</div></div>
+<span class="timeline-badge badge--completed">✅ Completed</span>
+</div>
+<div class="timeline-item">
+<div class="timeline-icon timeline-icon--completed">✓</div>
+<div class="timeline-content"><strong>Updated opportunity stage</strong> — "Milwaukee Brewers Season Shuttle" moved from Qualification → Proposal. Auto-attached pricing sheet based on 42-game package terms.<div class="timeline-meta">3:08 AM · Pipeline Update</div></div>
+<span class="timeline-badge badge--completed">✅ Completed</span>
+</div>
+<div class="timeline-item">
+<div class="timeline-icon timeline-icon--escalated">!</div>
+<div class="timeline-content"><strong>Flagged hot prospect</strong> — Lakewood School District opened pricing PDF 3× between 9 PM–5 AM. Engagement score spiked to 91. Recommend immediate outreach.<div class="timeline-meta">5:30 AM · Engagement Alert</div></div>
+<span class="timeline-badge badge--escalated">⚡ Escalated</span>
+</div>
+<div class="timeline-item">
+<div class="timeline-icon timeline-icon--pending">⏳</div>
+<div class="timeline-content"><strong>Booking conversation handled</strong> — Prospect "Waukesha County Parks" engaged chat agent re: summer camp transportation. Agent collected requirements, pending Jordan's review for custom quote.<div class="timeline-meta">6:47 AM · Chat Handoff</div></div>
+<span class="timeline-badge badge--pending">🔄 Pending Review</span>
+</div>
+</div>
+</div>
+
+<!-- Agent Conversation -->
+<div class="sf-card">
+<div class="sf-card__header">
+<span class="sf-card__title">💬 Agent Conversation — Waukesha County Parks</span>
+<span class="sf-card__badge">Handoff Ready</span>
+</div>
+<div class="sf-card__body">
+<div class="chat-container">
+<div class="chat-msg chat-msg--prospect">
+<div class="chat-avatar chat-avatar--prospect">TP</div>
+<div class="chat-bubble"><strong>Tina Patel</strong> · Events Coordinator, Waukesha County Parks<br><br>Hi! We need to book transportation for our summer camp program. About 180 kids across 4 locations, running June 16 – Aug 8. Do you handle recurring weekly routes?</div>
+</div>
+<div class="chat-msg chat-msg--agent">
+<div class="chat-avatar chat-avatar--agent">AF</div>
+<div class="chat-bubble">Hi Tina! Yes, absolutely — recurring weekly routes are one of our specialties at Go Riteway. 🚌<br><br>Let me grab a few details:<br>• How many days per week?<br>• Are all 4 locations within Waukesha County?<br>• Any ADA accessibility requirements?</div>
+</div>
+<div class="chat-msg chat-msg--prospect">
+<div class="chat-avatar chat-avatar--prospect">TP</div>
+<div class="chat-bubble">Monday through Thursday, all within the county. Two of our locations need wheelchair-accessible buses — probably 2 chairs per bus.</div>
+</div>
+<div class="chat-msg chat-msg--agent">
+<div class="chat-avatar chat-avatar--agent">AF</div>
+<div class="chat-bubble">Got it! Here's what I'm putting together:<br><br>📋 <strong>4 routes × 4 days/week × 8 weeks = 128 trips</strong><br>🚌 Mix of 44-passenger coaches + 2 ADA-equipped vehicles<br>📍 All within Waukesha County<br><br>For a program this size, I'd recommend our District Package which includes a dedicated dispatcher and backup vehicle guarantee. Want me to have our rep Jordan put together a formal quote?</div>
+</div>
+<div class="chat-msg chat-msg--prospect">
+<div class="chat-avatar chat-avatar--prospect">TP</div>
+<div class="chat-bubble">Yes please! Our budget meeting is next Tuesday so sooner the better. Can Jordan call me tomorrow?</div>
+</div>
+<div class="chat-msg chat-msg--agent">
+<div class="chat-avatar chat-avatar--agent">AF</div>
+<div class="chat-bubble">Absolutely! I'll have Jordan reach out tomorrow morning. He'll come prepared with a full quote and route map. Thanks for choosing Go Riteway, Tina — talk soon! 👋</div>
+</div>
+</div>
+<div class="chat-handoff">
+<strong>🔔 Handoff to Jordan Mack:</strong><br>
+<strong>Prospect:</strong> Tina Patel, Events Coordinator @ Waukesha County Parks<br>
+<strong>Need:</strong> Recurring summer camp transport — 180 kids, 4 locations, M–Th, June 16 – Aug 8<br>
+<strong>Key detail:</strong> 2 ADA-accessible buses required. Budget meeting next Tuesday.<br>
+<strong>Action:</strong> Call tomorrow AM with formal quote. Recommend District Package (~$94K est.)
+</div>
+</div>
+</div>
+
+</div><!-- end content-main -->
+
+<!-- SIDEBAR -->
+<div class="content-sidebar">
+<div class="sidebar-tabs">
+<a class="active" href="#">Activity</a>
+<a href="#">Feed</a>
+<a href="#">Einstein</a>
+</div>
+
+<!-- Next Best Actions -->
+<div style="margin-bottom:16px">
+<div style="font-size:12px;font-weight:700;color:#080707;margin-bottom:12px;display:flex;align-items:center;gap:6px">⚡ Next Best Actions</div>
+<div class="nba-item">
+<div class="nba-item__title">Send Proposal to Lakewood USD</div>
+<div class="nba-item__reason">Opened pricing PDF 3× in 48 hrs. HubSpot contract renews in 58 days. Proposal template "K-12 District Charter" is pre-filled.</div>
+<button class="nba-btn">Send Proposal</button>
+</div>
+<div class="nba-item">
+<div class="nba-item__title">Schedule Demo — Cardinal Stritch</div>
+<div class="nba-item__reason">Qualified overnight. Athletic dept needs 6 buses for fall away games. Decision-maker replied "interested" 11:42 PM.</div>
+<button class="nba-btn">Schedule Demo</button>
+</div>
+<div class="nba-item">
+<div class="nba-item__title">Call Mike Rezendes</div>
+<div class="nba-item__reason">Q3 fleet expansion detected. Last touch 19 days ago. Calendar open today 2–3 PM. Upsell: $180K fleet mgmt module.</div>
+<button class="nba-btn">Call Now</button>
+</div>
+</div>
+
+<!-- Today's Events -->
+<div style="border-top:1px solid #DDDBDA;padding-top:12px">
+<div style="font-size:12px;font-weight:700;color:#080707;margin-bottom:12px">Today's Events</div>
+<div style="font-size:12px;padding:6px 0;border-bottom:1px solid #F3F3F3"><span style="color:#706E6B">10:00 AM</span>&nbsp;&nbsp;Account Review — Go Riteway</div>
+<div style="font-size:12px;padding:6px 0;border-bottom:1px solid #F3F3F3"><span style="color:#706E6B">2:00 PM</span>&nbsp;&nbsp;Call: Mike Rezendes (fleet upsell)</div>
+<div style="font-size:12px;padding:6px 0"><span style="color:#706E6B">4:30 PM</span>&nbsp;&nbsp;Pipeline Review w/ Sales Mgr</div>
+</div>
+</div><!-- end sidebar -->
+</div><!-- end content-layout -->
+
+</body>
+</html>

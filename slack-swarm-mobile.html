@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agentforce Slack Swarm — Mobile Prototype</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#1a1a2e;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sans-serif;min-height:100vh;display:flex;justify-content:center;align-items:center;padding:20px}
+
+/* Phone Chassis */
+.phone{width:393px;height:852px;background:#000;border-radius:52px;padding:12px;position:relative;box-shadow:0 40px 100px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.1) inset}
+.phone-screen{width:100%;height:100%;background:#fff;border-radius:42px;overflow:hidden;display:flex;flex-direction:column;position:relative}
+
+/* Dynamic Island */
+.dynamic-island{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:126px;height:36px;background:#000;border-radius:20px;z-index:50}
+
+/* Status Bar */
+.status-bar{height:54px;background:#032D60;display:flex;align-items:flex-end;justify-content:space-between;padding:0 28px 8px;flex-shrink:0;position:relative;z-index:10}
+.status-bar__time{font-size:14px;font-weight:600;color:#fff}
+.status-bar__icons{display:flex;align-items:center;gap:6px}
+.status-bar__icons svg{width:16px;height:16px;fill:#fff}
+
+/* App Header */
+.app-header{background:#032D60;padding:10px 16px 14px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.app-header__back{width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.app-header__back svg{width:18px;height:18px;fill:#fff}
+.app-header__title{font-size:16px;font-weight:700;color:#fff;flex:1}
+.app-header__badge{display:flex;align-items:center;gap:4px;background:rgba(46,132,74,.25);border:1px solid #2E844A;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;color:#68D391;animation:badgePulse 2s infinite}
+@keyframes badgePulse{0%,100%{box-shadow:0 0 0 0 rgba(46,132,74,.3)}50%{box-shadow:0 0 0 6px rgba(46,132,74,0)}}
+
+/* Chat Area */
+.chat-area{flex:1;overflow-y:auto;padding:16px;background:#F8F9FA;display:flex;flex-direction:column;gap:16px}
+
+/* Message Bubbles */
+.message{display:flex;gap:10px;animation:msgIn .3s ease}
+@keyframes msgIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.message__avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.message__avatar--human{background:#1B5297;color:#fff}
+.message__avatar--ai{background:linear-gradient(135deg,#0176D3,#2E844A);color:#fff}
+.message__content{flex:1;min-width:0}
+.message__header{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.message__name{font-size:13px;font-weight:700;color:#080707}
+.message__time{font-size:11px;color:#706E6B}
+.message__bubble{padding:10px 14px;border-radius:12px;font-size:13px;line-height:1.6;color:#1a1a1a}
+.message--human .message__bubble{background:#fff;border:1px solid #E5E7EB}
+.message--ai .message__bubble{background:linear-gradient(135deg,#EEF8FF,#EDFCF2);border:1px solid rgba(1,118,211,.2);box-shadow:0 0 12px rgba(1,118,211,.06)}
+.message__ai-tag{font-size:9px;font-weight:700;background:#2E844A;color:#fff;padding:2px 6px;border-radius:8px;margin-left:4px}
+
+/* Push Notification */
+.push-notification{position:absolute;top:54px;left:8px;right:8px;background:rgba(255,255,255,.97);backdrop-filter:blur(20px);border-radius:16px;padding:12px 14px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 30px rgba(0,0,0,.15);z-index:100;transform:translateY(-120%);opacity:0;transition:all .4s cubic-bezier(.2,.8,.2,1)}
+.push-notification.show{transform:translateY(0);opacity:1}
+.push-notification__icon{width:32px;height:32px;background:#1B5297;border-radius:8px;display:flex;align-items:center;justify-content:center}
+.push-notification__icon svg{width:16px;height:16px;fill:#fff}
+.push-notification__text{flex:1}
+.push-notification__app{font-size:10px;font-weight:600;color:#706E6B;text-transform:uppercase;letter-spacing:.3px}
+.push-notification__msg{font-size:12px;font-weight:500;color:#080707;margin-top:1px}
+.push-notification__time{font-size:10px;color:#706E6B}
+
+/* Action Button */
+.action-dock{padding:12px 16px 28px;background:#fff;border-top:1px solid #E5E7EB;flex-shrink:0}
+.action-btn{width:100%;height:48px;border-radius:12px;border:none;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s}
+.action-btn--active{background:#0176D3;color:#fff}
+.action-btn--active:hover{background:#014486}
+.action-btn--loading{background:#0176D3;color:#fff;pointer-events:none}
+.action-btn--done{background:#E5E7EB;color:#706E6B;pointer-events:none}
+.action-btn__spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Home Indicator */
+.home-indicator{height:20px;display:flex;align-items:center;justify-content:center;background:#fff;flex-shrink:0}
+.home-indicator__bar{width:134px;height:5px;background:#1a1a1a;border-radius:3px}
+</style>
+</head>
+<body>
+<div class="phone">
+<div class="phone-screen">
+<!-- Dynamic Island -->
+<div class="dynamic-island"></div>
+
+<!-- Status Bar -->
+<div class="status-bar">
+<span class="status-bar__time">9:41</span>
+<div class="status-bar__icons">
+<svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+<svg viewBox="0 0 24 24"><path d="M2 22h20V2z M12 12V2.1C6.5 2.5 2 7.1 2 12.6V22h10V12z"/><rect x="17" y="4" width="3" height="18" rx="1"/><rect x="12" y="8" width="3" height="14" rx="1"/><rect x="7" y="12" width="3" height="10" rx="1"/><rect x="2" y="16" width="3" height="6" rx="1"/></svg>
+<svg viewBox="0 0 24 24"><path d="M17 4h-3V2h-4v2H7v18h10V4zm-1 16H8V6h8v14z"/><rect x="9" y="7" width="6" height="11" fill="#fff" opacity=".9"/></svg>
+</div>
+</div>
+
+<!-- App Header -->
+<div class="app-header">
+<div class="app-header__back">
+<svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+</div>
+<div class="app-header__title">Shipment #ST-9942</div>
+<div class="app-header__badge">🤖 Agentforce Active</div>
+</div>
+
+<!-- Push Notification -->
+<div class="push-notification" id="pushNotif">
+<div class="push-notification__icon">
+<svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+</div>
+<div class="push-notification__text">
+<div class="push-notification__app">Slack</div>
+<div class="push-notification__msg">New message from Marcus Robinson</div>
+</div>
+<div class="push-notification__time">now</div>
+</div>
+
+<!-- Chat Area -->
+<div class="chat-area" id="chatArea">
+<div class="message message--human">
+<div class="message__avatar message__avatar--human">MR</div>
+<div class="message__content">
+<div class="message__header">
+<span class="message__name">Marcus Robinson</span>
+<span class="message__time">09:30 AM</span>
+</div>
+<div class="message__bubble">Engine overheating light just hit red on I-80 near Omaha. Cargo is temp-sensitive pharma.</div>
+</div>
+</div>
+
+<div class="message message--ai">
+<div class="message__avatar message__avatar--ai">AF</div>
+<div class="message__content">
+<div class="message__header">
+<span class="message__name">Agentforce Bot</span>
+<span class="message__ai-tag">AI</span>
+<span class="message__time">09:30 AM</span>
+</div>
+<div class="message__bubble">Copy that, Marcus. Running a diagnostic check and pulling your shipment manifest headlessly... Standby.</div>
+</div>
+</div>
+
+<div class="message message--ai">
+<div class="message__avatar message__avatar--ai">AF</div>
+<div class="message__content">
+<div class="message__header">
+<span class="message__name">Agentforce Bot</span>
+<span class="message__ai-tag">AI</span>
+<span class="message__time">09:31 AM</span>
+</div>
+<div class="message__bubble">Update: Case #0048210 opened automatically. Telemetry confirms coolant leak. Dispatched Omaha Fleet Repair (ETA: 22 mins). Alerting dispatcher dashboard.</div>
+</div>
+</div>
+</div>
+
+<!-- Action Button -->
+<div class="action-dock">
+<button class="action-btn action-btn--active" id="actionBtn" onclick="handleSimulate()">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+Simulate Driver Reply
+</button>
+</div>
+
+<!-- Home Indicator -->
+<div class="home-indicator"><div class="home-indicator__bar"></div></div>
+</div>
+</div>
+
+<script>
+function handleSimulate() {
+    const btn = document.getElementById('actionBtn');
+    const chat = document.getElementById('chatArea');
+    const notif = document.getElementById('pushNotif');
+
+    btn.className = 'action-btn action-btn--loading';
+    btn.innerHTML = '<div class="action-btn__spinner"></div> Processing...';
+
+    setTimeout(function() {
+        notif.classList.add('show');
+
+        setTimeout(function() {
+            notif.classList.remove('show');
+        }, 3000);
+
+        const newMsg = document.createElement('div');
+        newMsg.className = 'message message--human';
+        newMsg.innerHTML = `
+            <div class="message__avatar message__avatar--human">MR</div>
+            <div class="message__content">
+                <div class="message__header">
+                    <span class="message__name">Marcus Robinson</span>
+                    <span class="message__time">09:33 AM</span>
+                </div>
+                <div class="message__bubble">Wow, thanks! Mechanic just texted me they are rolling out now. Glad Agentforce caught this fast.</div>
+            </div>
+        `;
+        chat.appendChild(newMsg);
+        chat.scrollTop = chat.scrollHeight;
+
+        btn.className = 'action-btn action-btn--done';
+        btn.innerHTML = '✓ Simulation Complete';
+    }, 1000);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Peloton × Agentforce Prototype</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:#0a0a0a;color:#fff;min-height:100vh;padding:40px 20px}
+h1{text-align:center;font-size:28px;margin-bottom:8px;font-weight:700}
+.subtitle{text-align:center;color:#888;font-size:14px;margin-bottom:48px}
+.storyboard{display:flex;flex-wrap:wrap;justify-content:center;gap:32px;max-width:1400px;margin:0 auto}
+.screen-wrap{display:flex;flex-direction:column;align-items:center;gap:12px}
+.screen-label{font-size:12px;color:#D03027;font-weight:600;text-transform:uppercase;letter-spacing:1px}
+.phone{width:280px;height:606px;border-radius:40px;border:3px solid #333;background:#000;overflow:hidden;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.phone-inner{width:100%;height:100%;overflow-y:auto;position:relative}
+.notch{width:120px;height:24px;background:#000;border-radius:0 0 16px 16px;position:absolute;top:0;left:50%;transform:translateX(-50%);z-index:10}
+.status-bar{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;font-size:10px;color:#fff;position:relative;z-index:5}
+.nav-bar{position:absolute;bottom:0;left:0;right:0;height:56px;background:#111;border-top:1px solid #222;display:flex;align-items:center;justify-content:space-around;font-size:9px;color:#666;z-index:10}
+.nav-bar .active{color:#fff}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:2px}
+.nav-icon{width:20px;height:20px;border-radius:4px;background:#333;display:flex;align-items:center;justify-content:center;font-size:10px}
+.nav-bar .active .nav-icon{background:#D03027}
+/* Home screen */
+.home-content{padding:16px 20px 70px}
+.pelo-logo{font-size:16px;font-weight:700;letter-spacing:-0.5px}
+.hero-greeting{font-size:22px;font-weight:700;margin:24px 0 8px}
+.streak-badge{display:inline-flex;align-items:center;gap:6px;background:#1C1C1E;padding:8px 14px;border-radius:20px;font-size:13px;margin-bottom:20px}
+.class-card{background:#1C1C1E;border-radius:16px;padding:16px;margin-bottom:16px}
+.class-card .instructor{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.5px}
+.class-card .title{font-size:15px;font-weight:600;margin:4px 0}
+.class-card .meta{font-size:11px;color:#666}
+.chat-fab{position:absolute;bottom:68px;right:16px;width:48px;height:48px;background:#D03027;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 12px rgba(208,48,39,.4)}
+.fab-label{position:absolute;bottom:120px;right:12px;font-size:10px;color:#888;background:#1C1C1E;padding:4px 8px;border-radius:8px;white-space:nowrap}
+/* Chat screens */
+.chat-header{padding:12px 16px;border-bottom:1px solid #222;display:flex;align-items:center;gap:10px}
+.chat-header .back{font-size:16px;color:#888}
+.chat-header .title{font-size:14px;font-weight:600;flex:1}
+.chat-header .badge{font-size:9px;color:#888}
+.chat-body{padding:12px 16px 70px;display:flex;flex-direction:column;gap:10px}
+.msg{max-width:85%;padding:10px 14px;border-radius:16px;font-size:12px;line-height:1.5}
+.msg-agent{background:#1C1C1E;align-self:flex-start;border-bottom-left-radius:4px}
+.msg-user{background:#D03027;align-self:flex-end;border-bottom-right-radius:4px}
+.msg-name{font-size:9px;color:#888;margin-bottom:3px}
+.msg-time{font-size:9px;color:#666;margin-top:4px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{background:#222;border:1px solid #444;border-radius:16px;padding:6px 12px;font-size:10px;color:#ccc}
+.input-bar{position:absolute;bottom:56px;left:0;right:0;height:44px;background:#111;border-top:1px solid #222;display:flex;align-items:center;padding:0 12px}
+.input-bar input{background:#222;border:none;border-radius:20px;height:32px;flex:1;padding:0 12px;font-size:11px;color:#888}
+.typing-dots{display:flex;gap:4px;padding:8px 12px}
+.typing-dots span{width:6px;height:6px;background:#666;border-radius:50%}
+.typing-label{font-size:9px;color:#666;padding-left:12px}
+.action-btns{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.btn-outline{border:1px solid #444;border-radius:20px;padding:6px 12px;font-size:10px;color:#ccc;background:transparent}
+.btn-filled{background:#D03027;border-radius:20px;padding:6px 12px;font-size:10px;color:#fff;border:none}
+.stars{display:flex;gap:4px;justify-content:center;margin:8px 0}
+.stars span{font-size:18px;color:#D03027}
+.toast{position:absolute;top:50px;left:12px;right:12px;background:#1a3a1a;border:1px solid #2d5a2d;border-radius:12px;padding:10px 14px;font-size:11px;color:#7ddf7d;z-index:20}
+.resolved-dot{position:absolute;bottom:72px;right:20px;width:10px;height:10px;background:#34c759;border-radius:50%}
+.powered-by{font-size:8px;color:#555;text-align:center;margin-top:12px}
+</style>
+</head>
+<body>
+<h1>Peloton × Agentforce</h1>
+<p class="subtitle">Member Service Agent — Interactive Storyboard (7 Screens)</p>
+<div class="storyboard">
+
+<!-- Screen 1: Home -->
+<div class="screen-wrap">
+<span class="screen-label">Screen 1 — Home</span>
+<div class="phone"><div class="phone-inner">
+<div class="notch"></div>
+<div class="status-bar"><span>9:41</span><span>⚡ 87%</span></div>
+<div class="home-content">
+<div class="pelo-logo">⬟ peloton</div>
+<div class="hero-greeting">Good morning, Sarah</div>
+<div class="streak-badge">🔥 14-ride streak this month</div>
+<div class="class-card">
+<div class="instructor">Featured Class</div>
+<div class="title">45-min Pop Ride with Cody Rigsby</div>
+<div class="meta">Cycling · Top Pick for You</div>
+</div>
+<div class="class-card">
+<div class="instructor">Strength</div>
+<div class="title">20-min Full Body Strength</div>
+<div class="meta">Strength · Beginner</div>
+</div>
+</div>
+<div class="fab-label">Need help? Ask here</div>
+<div class="chat-fab">💬</div>
+<div class="nav-bar">
+<div class="nav-item active"><div class="nav-icon">🏠</div>Home</div>
+<div class="nav-item"><div class="nav-icon">🎬</div>Classes</div>
+<div class="nav-item"><div class="nav-icon">🏆</div>Challenges</div>
+<div class="nav-item"><div class="nav-icon">👤</div>Profile</div>
+</div>
+</div></div>
+</div>
+
+<!-- Screen 2: Chat Opens -->
+<div class="screen-wrap">
+<span class="screen-label">Screen 2 — Chat Opens</span>
+<div class="phone"><div class="phone-inner">
+<div class="notch"></div>
+<div class="status-bar"><span>9:41</span><span>⚡ 87%</span></div>
+<div class="chat-header">
+<span class="back">‹</span>
+<span class="title">Peloton Member Support ✨</span>
+<span class="badge">Powered by Agentforce</span>
+</div>
+<div class="chat-body">
+<div class="msg-name">Peloton Assistant ✨</div>
+<div class="msg msg-agent">Hi Sarah 👋 I'm your Peloton member assistant. I have your account pulled up — how can I help you today?</div>
+<div class="msg-time">9:41 AM</div>
+<div class="chips">
+<span class="chip">Where is my order?</span>
+<span class="chip">Manage my membership</span>
+<span class="chip">Hardware support</span>
+</div>
+</div>
+<div class="input-bar"><input placeholder="Type your message..." readonly></div>
+<div class="nav-bar">
+<div class="nav-item"><div class="nav-icon">🏠</div>Home</div>
+<div class="nav-item"><div class="nav-icon">🎬</div>Classes</div>
+<div class="nav-item"><div class="nav-icon">🏆</div>Challenges</div>
+<div class="nav-item"><div class="nav-icon">👤</div>Profile</div>
+</div>
+</div></div>
+</div>
+
+<!-- Screen 3: Typing -->
+<div class="screen-wrap">
+<span class="screen-label">Screen 3 — Agent Thinking</span>
+<div class="phone"><div class="phone-inner">
+<div class="notch"></div>
+<div class="status-bar"><span>9:41</span><span>⚡ 87%</span></div>
+<div class="chat-header">
+<span class="back">‹</span>
+<span class="title">Peloton Member Support ✨</span>
+<span class="badge">Powered by Agentforce</span>
+</div>
+<div class="chat-body">
+<div class="msg-name">Peloton Assistant ✨</div>
+<div class="msg msg-agent">Hi Sarah 👋 I'm your Peloton member assistant. I have your account pulled up — how can I help you today?</div>
+<div class="msg-time">9:41 AM</div>
+<div style="height:12px"></div>
+<div class="msg msg-user">Where is my order?</div>
+<div class="msg-time" style="text-align:right">9:42 AM</div>
+<div style="height:12px"></div>
+<div class="msg-name">Peloton Assistant ✨</div>
+<div class="typing-dots"><span>●</span><span>●</span><span>●</span></div>
+<div class="typing-label">Checking your order and delivery status...</div>
+</div>
+<div class="input-bar"><input placeholder="Type your message..." readonly></div>
+<div class="nav-bar">
+<div class="nav-item"><div class="nav-icon">🏠</div>Home</div>
+<div class="nav-item"><div class="nav-icon">🎬</div>Classes</div>
+<div class="nav-item"><div class="nav-icon">🏆</div>Challenges</div>
+<div class="nav-item"><div class="nav-icon">👤</div>Profile</div>
+</div>
+</div></div>
+</div>
+
+<!-- Screen 4: Resolution -->
+<div class="screen-wrap">
+<span class="screen-label">Screen 4 — Agent Resolution</span>
+<div class="phone"><div class="phone-inner">
+<div class="notch"></div>
+<div class="status-bar"><span>9:42</span><span>⚡ 87%</span></div>
+<div class="chat-header">
+<span class="back">‹</span>
+<span class="title">Peloton Member Support ✨</span>
+<span class="badge">Powered by Agentforce</span>
+</div>
+<div class="chat-body">
+<div class="msg msg-user">Where is my order?</div>
+<div class="msg-time" style="text-align:right">9:42 AM</div>
+<div style="height:12px"></div>
+<div class="msg-name">Peloton Assistant ✨</div>
+<div class="msg msg-agent">I found your order, Sarah! 📦<br><br>Your <strong>Bike+ Mat</strong> (Order #PEL-2024-8821) is on its way. There was a small carrier delay, but it's back on track.<br><br>📍 <strong>Estimated delivery:</strong> Tomorrow, May 19th<br>🕐 <strong>Window:</strong> 10:00 AM – 2:00 PM<br><br>I've pulled this from your order history and cross-referenced the latest carrier update — no action needed on your end.<br><br>Would you like me to:</div>
+<div class="msg-time">9:42 AM</div>
+<div class="action-btns">
+<span class="btn-outline">📅 Add Calendar Reminder</span>
+<span class="btn-filled">📧 Send Me a Notification</span>
+</div>
+</div>
+<div class="input-bar"><input placeholder="Type your message..." readonly></div>
+<div class="nav-bar">
+<div class="nav-item"><div class="nav-icon">🏠</div>Home</div>
+<div class="nav-item"><div class="nav-icon">🎬</div>Classes</div>
+<div class="nav-item"><div class="nav-icon">🏆</div>Challenges</div>
+<div class="nav-item"><div class="nav-icon">👤</div>Profile</div>
+</div>
+</div></div>
+</div>
+
+<!-- Screen 5: Proactive Retention -->
+<div class="screen-wrap">
+<span class="screen-label">Screen 5 — Proactive Engagement</span>
+<div class="phone"><div class="phone-inner">
+<div class="notch"></div>
+<div class="status-bar"><span>9:42</span><span>⚡ 87%</span></div>
+<div class="chat-header">
+<span class="back">‹</span>
+<span class="title">Peloton Member Support ✨</span>
+<span class="badge">Powered by Agentforce</span>
+</div>
+<div class="chat-body">
+<div class="msg msg-user">Where is my order?</div>
+<div class="msg-time" style="text-align:right">9:42 AM</div>
+<div style="height:8px"></div>
+<div class="msg-name">Peloton Assistant ✨</div>
+<div class="msg msg-agent">Done! ✅ I've added a delivery reminder for tomorrow, May 19th at 9:45 AM so you're ready.<br><br>While I have you — I noticed you've been crushing it lately 💪 <strong>14 rides this month</strong> and you've been mixing in strength classes too.<br><br>Your friend Alex just completed a 20-min Beginner Strength class. Want me to add it to your schedule for after your mat arrives?</div>
+<div class="msg-time">9:42 AM</div>
+<div class="action-btns">
+<span class="btn-filled">Add to My Schedule</span>
+<span class="btn-outline">Maybe Later</span>
+</div>
+<div style="height:8px"></div>
+<div style="font-size:9px;color:#555;text-align:center">This interaction was resolved by Agentforce — no agent transfer needed</div>
+</div>
+<div class="input-bar"><input placeholder="Type your message..." readonly></div>
+<div class="nav-bar">
+<div class="nav-item"><div class="nav-icon">🏠</div>Home</div>
+<div class="nav-item"><div class="nav-icon">🎬</div>Classes</div>
+<div class="nav-item"><div class="nav-icon">🏆</div>Challenges</div>
+<div class="nav-item"><div class="nav-icon">👤</div>Profile</div>
+</div>
+</div></div>
+</div>
+
+<!-- Screen 6: MSAT Rating -->
+<div class="screen-wrap">
+<span class="screen-label">Screen 6 — Satisfaction Rating</span>
+<div class="phone"><div class="phone-inner">
+<div class="notch"></div>
+<div class="status-bar"><span>9:43</span><span>⚡ 87%</span></div>
+<div class="chat-header">
+<span class="back">‹</span>
+<span class="title">Peloton Member Support ✨</span>
+<span class="badge">Powered by Agentforce</span>
+</div>
+<div class="chat-body">
+<div class="msg-name">Peloton Assistant ✨</div>
+<div class="msg msg-agent">Perfect! 🎉 I've added the Beginner Strength class to your schedule for tomorrow afternoon.<br><br>You're all set, Sarah. Your mat is arriving tomorrow and your next class is locked in.<br><br>Anything else I can help with?</div>
+<div class="msg-time">9:43 AM</div>
+<div style="height:16px"></div>
+<div style="background:#1C1C1E;border-radius:16px;padding:16px;text-align:center">
+<div style="font-size:12px;font-weight:600;margin-bottom:8px">How did I do today?</div>
+<div class="stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div>
+<div style="margin-top:10px"><span class="btn-filled" style="padding:8px 24px">Submit</span></div>
+</div>
+<div class="powered-by">Powered by Salesforce Agentforce + Data Cloud</div>
+</div>
+<div class="input-bar"><input placeholder="Type your message..." readonly></div>
+<div class="nav-bar">
+<div class="nav-item"><div class="nav-icon">🏠</div>Home</div>
+<div class="nav-item"><div class="nav-icon">🎬</div>Classes</div>
+<div class="nav-item"><div class="nav-icon">🏆</div>Challenges</div>
+<div class="nav-item"><div class="nav-icon">👤</div>Profile</div>
+</div>
+</div></div>
+</div>
+
+<!-- Screen 7: Back to Home -->
+<div class="screen-wrap">
+<span class="screen-label">Screen 7 — Closed Loop</span>
+<div class="phone"><div class="phone-inner">
+<div class="notch"></div>
+<div class="status-bar"><span>9:43</span><span>⚡ 87%</span></div>
+<div class="toast">✅ Delivery reminder set for tomorrow · Strength class added</div>
+<div class="home-content">
+<div class="pelo-logo">⬟ peloton</div>
+<div class="hero-greeting">Good morning, Sarah</div>
+<div class="streak-badge">🔥 14-ride streak this month</div>
+<div class="class-card">
+<div class="instructor">Featured Class</div>
+<div class="title">45-min Pop Ride with Cody Rigsby</div>
+<div class="meta">Cycling · Top Pick for You</div>
+</div>
+<div class="class-card">
+<div class="instructor">Tomorrow's Schedule</div>
+<div class="title">20-min Beginner Strength</div>
+<div class="meta">Strength · Added by Peloton Assistant</div>
+</div>
+</div>
+<div class="chat-fab" style="background:#1C1C1E">💬</div>
+<div class="resolved-dot"></div>
+<div class="nav-bar">
+<div class="nav-item active"><div class="nav-icon">🏠</div>Home</div>
+<div class="nav-item"><div class="nav-icon">🎬</div>Classes</div>
+<div class="nav-item"><div class="nav-icon">🏆</div>Challenges</div>
+<div class="nav-item"><div class="nav-icon">👤</div>Profile</div>
+</div>
+</div></div>
+</div>
+
+</div><!-- end storyboard -->
+</body>
+</html>

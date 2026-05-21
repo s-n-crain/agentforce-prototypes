@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Autonomous Logistics Disruption Console</title>
+<link rel="stylesheet" href="https://unpkg.com/@salesforce-ux/design-system/assets/styles/salesforce-lightning-design-system.min.css">
+<style>
+body {
+    background: #F3F3F3;
+    margin: 0;
+    padding: 20px 0;
+    font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+.mobile-device {
+    width: 412px;
+    max-width: 100%;
+    min-height: 860px;
+    background: #F3F3F3;
+    border-radius: 24px;
+    box-shadow: 0 8px 40px rgba(0,0,0,.15);
+    overflow: hidden;
+    position: relative;
+    border: 1px solid #DDDBDA;
+}
+.mobile-statusbar {
+    background: #032D60;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    font-size: 11px;
+    color: #fff;
+    font-weight: 500;
+}
+.slds-page-header {
+    border-radius: 0;
+}
+.route-comparison {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+.route-block {
+    padding: 12px;
+    border-radius: 8px;
+    text-align: center;
+}
+.route-block_error {
+    background: #FEE2E2;
+    border: 1px solid #FCA5A5;
+}
+.route-block_success {
+    background: #DEF7E8;
+    border: 1px solid #68D391;
+}
+.route-block__city {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+.route-block__label {
+    font-size: 11px;
+    font-weight: 500;
+}
+.route-block_error .route-block__city { color: #DC2626; }
+.route-block_error .route-block__label { color: #92400E; }
+.route-block_success .route-block__city { color: #15803D; }
+.route-block_success .route-block__label { color: #166534; }
+/* Timeline fixes */
+.slds-timeline__item_expandable {
+    padding-left: 1rem;
+}
+.timeline-time {
+    font-size: 11px;
+    font-weight: 600;
+    color: #706E6B;
+    min-width: 58px;
+}
+.timeline-entry {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid #f3f3f3;
+}
+.timeline-entry:last-child { border-bottom: none; }
+.timeline-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-top: 4px;
+    flex-shrink: 0;
+}
+.timeline-dot_alert { background: #EA001E; }
+.timeline-dot_agent { background: #0176D3; }
+.timeline-dot_api { background: #9333EA; }
+.timeline-dot_email { background: #2E844A; }
+.timeline-text__title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #080707;
+}
+.timeline-text__detail {
+    font-size: 11px;
+    color: #706E6B;
+    margin-top: 2px;
+}
+/* Email draft */
+.email-draft {
+    background: #FAFAF9;
+    border: 1px solid #DDDBDA;
+    border-radius: 8px;
+    padding: 14px;
+    font-size: 12px;
+    line-height: 1.7;
+    color: #3E3E3C;
+    white-space: pre-wrap;
+}
+.email-meta {
+    font-size: 11px;
+    color: #706E6B;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #DDDBDA;
+}
+.button-dock {
+    padding: 12px 16px;
+    background: #fff;
+    border-top: 1px solid #DDDBDA;
+    display: flex;
+    gap: 8px;
+}
+.button-dock .slds-button {
+    flex: 1;
+    justify-content: center;
+}
+/* Toast */
+.slds-notify_container {
+    position: absolute;
+    top: 32px;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+}
+/* Modal override for mobile */
+.slds-modal__container {
+    max-width: 380px;
+    margin: 2rem auto;
+}
+.sent-status {
+    background: #DEF7E8;
+    border: 1px solid #68D391;
+    border-radius: 8px;
+    padding: 14px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: #15803D;
+}
+</style>
+</head>
+<body>
+<div class="mobile-device" id="app">
+<!-- Status Bar -->
+<div class="mobile-statusbar">
+<span>9:16 AM</span>
+<span>5G ⚡ 91%</span>
+</div>
+
+<!-- Page Header -->
+<div class="slds-page-header slds-page-header_joined">
+<div class="slds-page-header__row">
+<div class="slds-page-header__col-title">
+<div class="slds-media">
+<div class="slds-media__figure">
+<span class="slds-icon_container slds-icon-standard-shipment" style="background:#0176D3;border-radius:8px;width:36px;height:36px;display:flex;align-items:center;justify-content:center">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+</span>
+</div>
+<div class="slds-media__body">
+<div class="slds-page-header__name">
+<div class="slds-page-header__name-title">
+<h1>
+<span class="slds-page-header__title slds-truncate" style="font-size:15px;font-weight:700">Shipment #ST-9942 — Recovery</span>
+</h1>
+</div>
+</div>
+<p class="slds-page-header__name-meta slds-m-top_xxx-small">
+<span class="slds-badge slds-badge_success" style="font-size:10px">🤖 Agentforce Protected</span>
+</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Card A: Disruption Details -->
+<div class="slds-p-around_medium">
+<article class="slds-card slds-m-bottom_small">
+<div class="slds-card__header slds-grid">
+<header class="slds-media slds-media_center slds-has-flexi-truncate">
+<div class="slds-media__body">
+<h2 class="slds-card__header-title" style="font-size:13px;font-weight:700">Disruption Details</h2>
+</div>
+</header>
+<div class="slds-no-flex">
+<span class="slds-badge slds-badge_inverse" style="font-size:10px">Critical</span>
+</div>
+</div>
+<div class="slds-card__body slds-card__body_inner">
+<div class="route-comparison">
+<div class="route-block route-block_error">
+<div class="route-block__city">Chicago, IL</div>
+<div class="route-block__label">⛔ Interdicted</div>
+</div>
+<div class="route-block route-block_success">
+<div class="route-block__city">Indianapolis, IN</div>
+<div class="route-block__label">✅ Agentforce Detour</div>
+</div>
+</div>
+<div class="slds-grid slds-m-top_small" style="font-size:11px;color:#706E6B">
+<div class="slds-col">
+<strong>ETA Impact:</strong> +1.5 hrs
+</div>
+<div class="slds-col slds-text-align_right">
+<strong>Cost:</strong> +$220 spot rate
+</div>
+</div>
+</div>
+</article>
+
+<!-- Card B: Headless Action Log -->
+<article class="slds-card slds-m-bottom_small">
+<div class="slds-card__header slds-grid">
+<header class="slds-media slds-media_center slds-has-flexi-truncate">
+<div class="slds-media__body">
+<h2 class="slds-card__header-title" style="font-size:13px;font-weight:700">Headless Agent Action Log</h2>
+</div>
+</header>
+<div class="slds-no-flex">
+<span class="slds-badge" style="font-size:10px;background:#EEF4FF;color:#0176D3">4 Actions</span>
+</div>
+</div>
+<div class="slds-card__body slds-card__body_inner">
+<div class="timeline-entry">
+<span class="timeline-time">09:14</span>
+<span class="timeline-dot timeline-dot_alert"></span>
+<div>
+<div class="timeline-text__title">IoT Sensor Alert</div>
+<div class="timeline-text__detail">Ambient temp rising — cold chain threshold breach imminent</div>
+</div>
+</div>
+<div class="timeline-entry">
+<span class="timeline-time">09:15</span>
+<span class="timeline-dot timeline-dot_agent"></span>
+<div>
+<div class="timeline-text__title">Agentforce Triggered</div>
+<div class="timeline-text__detail">Headless route recalculation initiated — 4 alternatives scored</div>
+</div>
+</div>
+<div class="timeline-entry">
+<span class="timeline-time">09:15</span>
+<span class="timeline-dot timeline-dot_api"></span>
+<div>
+<div class="timeline-text__title">Carrier API Call</div>
+<div class="timeline-text__detail">Spot-rate booking secured with XPO — Indianapolis bypass confirmed</div>
+</div>
+</div>
+<div class="timeline-entry">
+<span class="timeline-time">09:16</span>
+<span class="timeline-dot timeline-dot_email"></span>
+<div>
+<div class="timeline-text__title">Client Notification Drafted</div>
+<div class="timeline-text__detail">AI-generated email ready for review and approval</div>
+</div>
+</div>
+</div>
+</article>
+
+<!-- Card C: AI-Generated Email -->
+<article class="slds-card slds-m-bottom_small" id="emailCard">
+<div class="slds-card__header slds-grid">
+<header class="slds-media slds-media_center slds-has-flexi-truncate">
+<div class="slds-media__body">
+<h2 class="slds-card__header-title" style="font-size:13px;font-weight:700">AI-Generated Communication</h2>
+</div>
+</header>
+<div class="slds-no-flex">
+<span class="slds-badge" style="font-size:10px;background:#FEF3CD;color:#92400E" id="emailBadge">Pending Approval</span>
+</div>
+</div>
+<div class="slds-card__body slds-card__body_inner" id="emailBody">
+<div class="email-meta">
+<strong>To:</strong> Sarah Chen, VP Logistics — NovaCold Partners<br>
+<strong>Subject:</strong> Shipment #ST-9942 rerouted — ETA updated
+</div>
+<div class="email-draft">Hi Sarah,
+
+This is an automated update regarding your shipment #ST-9942 (cold-chain pharmaceuticals, Chicago → Detroit).
+
+Our monitoring system detected a temperature anomaly on the original route due to an unexpected road closure and idling conditions near I-90. To protect your cargo, we've autonomously rerouted through Indianapolis.
+
+Updated details:
+• New route: Newark → Indianapolis → Detroit (bypass I-90/Chicago corridor)
+• Revised ETA: Today by 4:45 PM (was 3:15 PM)
+• Cold chain status: Maintained within spec (2–8°C)
+
+No action is required on your end. Your shipment remains fully protected.
+
+Best regards,
+Logistics Operations — Powered by Agentforce</div>
+</div>
+<div class="button-dock" id="buttonDock">
+<button class="slds-button slds-button_brand" id="btnApprove" onclick="handleApprove()">Approve &amp; Send</button>
+<button class="slds-button slds-button_neutral" id="btnOverride" onclick="handleOverride()">Override</button>
+</div>
+</article>
+</div>
+
+<!-- Toast Container -->
+<div class="slds-notify_container slds-is-relative" id="toastContainer" style="display:none">
+<div class="slds-notify slds-notify_toast slds-theme_success" role="status">
+<div class="slds-notify__content">
+<p class="slds-text-heading_small" style="font-size:12px">Success: Reroute approved &amp; client notified via Agentforce Headless Service.</p>
+</div>
+<div class="slds-notify__close">
+<button class="slds-button slds-button_icon slds-button_icon-inverse" onclick="hideToast()">
+<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+</button>
+</div>
+</div>
+</div>
+
+<!-- Override Modal -->
+<div id="overrideModal" style="display:none">
+<section role="dialog" class="slds-modal slds-fade-in-open slds-modal_small">
+<div class="slds-modal__container">
+<header class="slds-modal__header">
+<h2 class="slds-modal__title slds-hyphenate" style="font-size:16px">Override Detour Route</h2>
+<button class="slds-button slds-button_icon slds-modal__close" onclick="hideModal()">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+</button>
+</header>
+<div class="slds-modal__content slds-p-around_medium">
+<div class="slds-form-element">
+<label class="slds-form-element__label" for="detourCity">Manual Detour City</label>
+<div class="slds-form-element__control">
+<input type="text" id="detourCity" class="slds-input" placeholder="e.g., Columbus, OH">
+</div>
+<div class="slds-form-element__help slds-m-top_xx-small" style="font-size:11px;color:#706E6B">Enter the city to use as an alternate waypoint. This will override the Agentforce recommendation.</div>
+</div>
+</div>
+<footer class="slds-modal__footer">
+<button class="slds-button slds-button_neutral" onclick="hideModal()">Cancel</button>
+<button class="slds-button slds-button_brand" onclick="submitOverride()">Submit Override</button>
+</footer>
+</div>
+</section>
+<div class="slds-backdrop slds-backdrop_open" onclick="hideModal()"></div>
+</div>
+
+</div><!-- end mobile-device -->
+
+<script>
+function handleApprove() {
+    const btn = document.getElementById('btnApprove');
+    const btnOverride = document.getElementById('btnOverride');
+    
+    btn.disabled = true;
+    btnOverride.disabled = true;
+    btn.innerHTML = '<div class="slds-spinner_container" style="position:relative;height:20px"><div class="slds-spinner slds-spinner_x-small" role="status"><span class="slds-assistive-text">Sending</span><div class="slds-spinner__dot-a"></div><div class="slds-spinner__dot-b"></div></div></div>';
+
+    setTimeout(function() {
+        // Show toast
+        document.getElementById('toastContainer').style.display = 'block';
+        
+        // Update card
+        document.getElementById('emailBadge').textContent = '✅ Sent';
+        document.getElementById('emailBadge').style.background = '#DEF7E8';
+        document.getElementById('emailBadge').style.color = '#15803D';
+        
+        // Replace button dock
+        document.getElementById('buttonDock').innerHTML = '<div class="sent-status" style="width:100%">✅ Sent & Logged to Salesforce Timeline</div>';
+        
+        // Auto-hide toast after 4s
+        setTimeout(function() { hideToast(); }, 4000);
+    }, 1500);
+}
+
+function handleOverride() {
+    document.getElementById('overrideModal').style.display = 'block';
+}
+
+function hideModal() {
+    document.getElementById('overrideModal').style.display = 'none';
+}
+
+function submitOverride() {
+    const city = document.getElementById('detourCity').value;
+    if (city) {
+        hideModal();
+        // Update the success block
+        document.querySelector('.route-block_success .route-block__city').textContent = city;
+        document.querySelector('.route-block_success .route-block__label').textContent = '🔄 Manual Override';
+    }
+}
+
+function hideToast() {
+    document.getElementById('toastContainer').style.display = 'none';
+}
+</script>
+</body>
+</html>
